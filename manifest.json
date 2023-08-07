@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "Event Recorder",
+    "description": "Records events in the browser",
+    "version": "1.0",
+    "author": "END Prasad",
+    "permissions": [
+      "activeTab",
+      "storage"
+    ],
+    "host_permissions": ["https://*/*"],
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content-scripts/content.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "/popup/popUp.html",
+      "default_icon": "/images/record.png"
+    }
+  }
