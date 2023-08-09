@@ -5,8 +5,9 @@
     "version": "1.0",
     "author": "END Prasad",
     "permissions": [
-      "activeTab",
-      "storage"
+      "<all_urls>",
+      "storage",
+      "downloads"
     ],
     "host_permissions": ["https://*/*"],
     "content_scripts": [

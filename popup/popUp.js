@@ -1,10 +1,16 @@
 // popup.js
-
-chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+// {active: true, currentWindow: true}
+chrome.tabs.query({active: true}, (tabs) => {
     document.getElementById("start").addEventListener("click", function() {
         // chrome.tabs.executeScript({ file: '/content.js' });
-        chrome.storage.sync.set({"recordedEvents": []})
-        chrome.tabs.sendMessage(tabs[0].id, {todo: "start"})
+        let title = document.getElementById("title").value
+        if(title){
+            chrome.storage.sync.set({"recordedEvents": [{eventType: "title", title: title}]})
+            chrome.tabs.sendMessage(tabs[0].id, {todo: "start", title: title})
+        }else{
+            alert("Enter title!!")
+        }
+        
     });
 
     document.getElementById("stop").addEventListener("click", function() {
