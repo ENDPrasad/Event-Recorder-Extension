@@ -1,40 +1,49 @@
 // popup.js
+
+// chrome.storage.sync.set({
+//   recordedEvents: [],
+//   isRecording: false,
+// });
+
 // {active: true, currentWindow: true}
-chrome.tabs.query({active: true}, (tabs) => {
-    document.getElementById("start").addEventListener("click", function() {
-        // chrome.tabs.executeScript({ file: '/content.js' });
-        let title = document.getElementById("title").value
-        if(title){
-            chrome.storage.sync.set({"recordedEvents": [{eventType: "title", title: title}]})
-            chrome.tabs.sendMessage(tabs[0].id, {todo: "start", title: title})
-        }else{
-            alert("Enter title!!")
-        }
-        
+chrome.tabs.query({ active: true }, (tabs) => {
+  document.getElementById("start").addEventListener("click", function () {
+    // chrome.tabs.executeScript({ file: '/content.js' });
+    let title = document.getElementById("title").value;
+    if (title) {
+      chrome.storage.sync.set({
+        recordedEvents: [{ eventType: "title", title: title }],
+        isRecording: true,
+        isPlayback: false,
+      });
+      chrome.tabs.sendMessage(tabs[0].id, { todo: "start", title: title });
+    } else {
+      alert("Enter title!!");
+    }
+  });
+
+  document.getElementById("stop").addEventListener("click", function () {
+    // Stop recording logic
+    // chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    //     chrome.scripting.executeScript({
+    //         target: { tabId: tabs[0].id },
+    //         function: stopRecording
+    //     });
+    // });
+
+    chrome.tabs.sendMessage(tabs[0].id, { todo: "stop" });
+    chrome.storage.sync.set({
+      isRecording: false,
     });
+  });
 
-    document.getElementById("stop").addEventListener("click", function() {
-        // Stop recording logic
-        // chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-        //     chrome.scripting.executeScript({
-        //         target: { tabId: tabs[0].id },
-        //         function: stopRecording
-        //     });
-        // });
-        chrome.tabs.sendMessage(tabs[0].id, {todo: "stop"})
-    
+  document.getElementById("playback").addEventListener("click", function () {
+    chrome.tabs.sendMessage(tabs[0].id, { todo: "playback" });
+    chrome.storage.sync.set({
+      isPlayback: true,
     });
-
-    document.getElementById("playback").addEventListener("click", function() {
-
-        chrome.tabs.sendMessage(tabs[0].id, {todo: "playback"})
-    
-    });
-})
-
-
-
-
+  });
+});
 
 // document.getElementById("playback").addEventListener("click", function() {
 //     // Playback logic
