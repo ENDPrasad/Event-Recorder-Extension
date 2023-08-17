@@ -18,7 +18,7 @@ chrome.tabs.query({ active: true }, (tabs) => {
       });
       chrome.tabs.sendMessage(tabs[0].id, { todo: "start", title: title });
     } else {
-      alert("Enter title!!");
+      alert("Enter title to proceed!!");
     }
   });
 

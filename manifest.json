@@ -1,23 +1,23 @@
 {
-    "manifest_version": 3,
-    "name": "Event Recorder",
-    "description": "Records events in the browser",
-    "version": "1.0",
-    "author": "END Prasad",
-    "permissions": [
-      "<all_urls>",
-      "storage",
-      "downloads"
-    ],
-    "host_permissions": ["https://*/*"],
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content-scripts/content.js"]
-      }
-    ],
-    "action": {
-      "default_popup": "/popup/popUp.html",
-      "default_icon": "/images/record.png"
+  "manifest_version": 3,
+  "name": "Event Recorder",
+  "description": "Records events in the browser",
+  "version": "1.0",
+  "author": "END Prasad",
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "downloads"],
+  "host_permissions": ["https://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-scripts/content.js"]
     }
+  ],
+  "action": {
+    "default_popup": "/popup/popUp.html",
+    "default_icon": "/images/record.png"
   }
+}
