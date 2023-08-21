@@ -4,6 +4,8 @@
 var recordedEvents = [];
 var testCaseTitle = "";
 
+var isAssert = false;
+
 const checkRecording = () => {
   chrome.storage.sync.get(
     ["isRecording", "recordedEvents", "isPlayback"],
@@ -48,6 +50,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.todo === "playback") {
     console.log("Playback started");
     playback();
+    // Clear the stored Data
+    // chrome.storage.sync.clear(() => {
+    //   console.log("Everything was removed");
+    // });
   }
 });
 
@@ -87,20 +93,51 @@ const addListeners = () => {
   //   });
 
   // For selection text
-  //   document.addEventListener("selectionchange", (event) => {
-  //     var updatedRecordedEvents = [];
-  //     chrome.storage.sync.get("recordedEvents", (events) => {
-  //       updatedRecordedEvents = events.recordedEvents;
-  //       var eventInfo = {
-  //         timestamp: Date.now(),
-  //         eventType: "assert",
-  //         event: event,
-  //         text: document.getSelection(),
-  //       };
-  //       updatedRecordedEvents.push(eventInfo);
-  //       chrome.storage.sync.set({ recordedEvents: updatedRecordedEvents });
-  //     });
-  //   });
+  document.addEventListener("selectionchange", (event) => {
+    var updatedRecordedEvents = [];
+    var eventInfo = {};
+    chrome.storage.sync.get(["recordedEvents", "isRecording"], (events) => {
+      if (!events.isRecording) {
+        return;
+      }
+      updatedRecordedEvents = events.recordedEvents;
+
+      if (events.recordedEvents.length == 1) {
+        updatedRecordedEvents.push({
+          timestamp: Date.now(),
+          eventType: "navigate",
+          url: window.location.href,
+        });
+      }
+      //   let XPathData = getElementXPath(event.target);
+      //   console.log(
+      //     events.recordedEvents[events.recordedEvents.length - 1].XPath
+      //   );
+      var currentSelection = window.getSelection().toString();
+      var lastRecord = events.recordedEvents.slice(-1)[0];
+      if (
+        currentSelection.slice(1, currentSelection.length) == lastRecord.text
+      ) {
+        eventInfo = lastRecord;
+        eventInfo.text = currentSelection;
+        updatedRecordedEvents = events.recordedEvents.slice(
+          0,
+          events.recordedEvents.length - 1
+        );
+      } else {
+        eventInfo = {
+          timestamp: Date.now(),
+          eventType: "assert",
+          element: event.target,
+          text: window.getSelection().toString(),
+          event: event,
+        };
+      }
+      updatedRecordedEvents.push(eventInfo);
+      chrome.storage.sync.set({ recordedEvents: updatedRecordedEvents });
+      isAssert = true;
+    });
+  });
 
   // For Selected text
   //   document.addEventListener("mouseup keyup selectionchange", (event) => {
@@ -191,6 +228,11 @@ const addListeners = () => {
         return;
       }
       updatedRecordedEvents = events.recordedEvents;
+      var lastRecord = events.recordedEvents.slice(-1)[0];
+      if (lastRecord.eventType == "assert" && isAssert) {
+        isAssert = false;
+        return;
+      }
 
       if (events.recordedEvents.length == 1) {
         updatedRecordedEvents.push({
@@ -234,20 +276,24 @@ function getDataInSteps(recordedSteps) {
   let data = "";
   let title = "";
   recordedSteps.forEach((element, index) => {
-    if (index) data += index.toString() + ". " + element + "\n";
-    else {
-      data = element + "\n";
+    // To get step numbers
+    // if (index) data += index.toString() + ". " + element + "\n";
+    if (index == 1) {
       title = element;
     }
+    data += element + "\n";
   });
   return { data: data, title: title };
 }
 
-// Not working, unable to get event in the object??
-
 const playback = () => {
   chrome.storage.sync.get("recordedEvents", (events) => {
     recordedSteps = [];
+    var testData = [
+      "------------------------",
+      "        Test Data",
+      "------------------------",
+    ];
     events.recordedEvents.forEach((element, index) => {
       // console.log(element.event.target.innerText)
       // setTimeout(() => {
@@ -265,24 +311,33 @@ const playback = () => {
       // document.evaluate(element.XPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.style.border = "3px solid red"
 
       if (element.eventType === "click")
-        if (element.inputValue)
+        if (element.inputValue) {
           recordedSteps.push(
             `Click on the ${element.text} element and enter ${element.inputValue} \n\t XPath - ${element.XPath}\n`
           );
-        else
+          testData.push(element.inputValue);
+        } else
           recordedSteps.push(
-            `Click on the ${element.text} element \n\t XPath - ${element.XPath}\n`
+            `--> Click on the ${element.text} element \n\t XPath - ${element.XPath}\n`
           );
-      else if (element.eventType === "input")
+      else if (element.eventType === "input") {
         recordedSteps.push(
-          `Enter the value of '${element.inputValue}' in the input field \n\t XPath - ${element.XPath}\n`
+          `--> Enter the value of '${element.inputValue}' in the input field \n\t XPath - ${element.XPath}\n`
         );
-      else if (element.eventType === "navigate")
-        recordedSteps.push("Navigate to " + element.url);
-      else if (element.eventType === "title") recordedSteps.push(element.title);
-      else if (element.eventType === "assert")
+        testData.push(element.inputValue);
+      } else if (element.eventType === "navigate") {
         recordedSteps.push(
-          `Check Whether '${element.text}' text exists or not`
+          "------------------------------",
+          "           Steps",
+          "------------------------------",
+          "--> Navigate to " + element.url
+        );
+      } else if (element.eventType === "title") {
+        // recordedSteps.push("--------------", "   Title", "--------------");
+        recordedSteps.push("Test Title: ", element.title);
+      } else if (element.eventType === "assert")
+        recordedSteps.push(
+          `--> Check Whether '${element.text}' text exists or not`
         );
     });
 
