@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Event Recorder",
-  "description": "Records events in the browser",
+  "name": "Automatic Testcase Generator",
+  "description": "Records events in the browser and then generates the testcase",
   "version": "1.0",
   "author": "END Prasad",
   "background": {
@@ -18,6 +18,6 @@
   ],
   "action": {
     "default_popup": "/popup/popUp.html",
-    "default_icon": "/images/record.png"
+    "default_icon": "/images/recorder_logo.png"
   }
 }
